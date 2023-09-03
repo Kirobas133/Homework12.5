@@ -1,0 +1,13 @@
+CREATE TABLE public.clients (
+	id serial NOT NULL,
+	"name" text NOT NULL,
+	secondname text NOT NULL,
+	email text NULL,
+	CONSTRAINT clients_pk PRIMARY KEY (id)
+);
+CREATE TABLE public.telnumbers (
+	id serial NOT NULL,
+	"number" text NOT NULL,
+	clientid int REFERENCES clients(id) NOT NULL,
+	CONSTRAINT telnumbers_pk PRIMARY KEY (id)
+);
