@@ -43,10 +43,10 @@ public:
 	void addclient(dbclient client) {
 		//int added
 		pqxx::work transaction(*con);
-		std::string command = "INSERT INTO clients (name, surename, email) VALUES ('" + client.name + "', '"
+		std::string command = "INSERT INTO clients (name, surename, email) VALUES ('" + transaction.esc(client.name) + "', '"
 			+ client.surename + "', '" + client.email + "')";
 		std::cout << "addclient command: " << command << std::endl << std::endl;
-		transaction.exec(transaction.esc(command));
+		transaction.exec(command);
 		transaction.commit();
 		std::cout << "Client added!" << std::endl << std::endl << std::endl;
 		//add return id
@@ -54,9 +54,9 @@ public:
 
 	void addphone(std::string phone, std::string clientid) {
 		pqxx::work transaction(*con);
-		std::string command = "INSERT INTO phonenumbers (number, clientid) VALUES ('" + phone + "', " + clientid + ")";
+		std::string command = "INSERT INTO phonenumbers (number, clientid) VALUES ('" + transaction.esc(phone) + "', " + transaction.esc(clientid) + ")";
 		std::cout << "phone add command: " << command << std::endl << std::endl;
-		transaction.exec(transaction.esc(command));
+		transaction.exec(command);
 		transaction.commit();
 		std::cout << "Phone added!" << std::endl << std::endl << std::endl;
 	}
@@ -64,9 +64,9 @@ public:
 	void changeclientinfo(int clientid, std::string infotype, std::string newinfo) {
 		pqxx::work transaction(*con);
 
-		std::string command = "UPDATE clients SET "+ infotype + " = '" + newinfo + "' WHERE id = " + std::to_string(clientid);
+		std::string command = "UPDATE clients SET "+ transaction.esc(infotype) + " = '" + transaction.esc(newinfo) + "' WHERE id = " + std::to_string(clientid);
 		std::cout << "update info command: " << command << std::endl << std::endl;
-		transaction.exec(transaction.esc(command));
+		transaction.exec(command);
 		transaction.commit();
 		std::cout << "Info sucsessfuly updated!" << std::endl << std::endl << std::endl;
 	}
@@ -76,7 +76,7 @@ public:
 		std::string clientidstr = std::to_string(clientid);
 		std::string command = "DELETE from phonenumbers WHERE clientid = " + clientidstr;
 		std::cout << "Delete phone command: " << command << std::endl << std::endl;
-		transaction.exec(transaction.esc(command));
+		transaction.exec(command);
 		transaction.commit();
 		std::cout << "Phone deleted!" << std::endl << std::endl << std::endl;
 	}
@@ -86,14 +86,14 @@ public:
 		std::string clientidstr = std::to_string(clientid);
 		std::string command = "DELETE from phonenumbers WHERE clientid = " + clientidstr;
 		std::cout << "Delete phone command: " << command << std::endl << std::endl;
-		transaction.exec(transaction.esc(command));
+		transaction.exec(command);
 		//transaction.commit();
 		std::cout << "Phone deleted!" << std::endl << std::endl;
 
 		//pqxx::work transaction2(*con);
 		command = "DELETE from clients WHERE id = " + clientidstr;
 		std::cout << "Delete client command: " << command << std::endl << std::endl;
-		transaction.exec(transaction.esc(command));
+		transaction.exec(command);
 		transaction.commit();
 		std::cout << "Client deleted!" << std::endl << std::endl << std::endl;
 	}
@@ -107,20 +107,20 @@ public:
 			int clientfindidint = (clientfindid.begin()); */
 			//не понимаю как преобразовать в int чтобы потом преобразовать в string
 
-			std::string command = "SELECT clients.id, clients.name, clients.surename, clients.email FROM clients LEFT JOIN phonenumbers ON clients.id = phonenumbers.clientid WHERE phonenumbers.number LIKE '" + name + "'";
+			std::string command = "SELECT clients.id, clients.name, clients.surename, clients.email FROM clients LEFT JOIN phonenumbers ON clients.id = phonenumbers.clientid WHERE phonenumbers.number LIKE '" + transaction.esc(name) + "'";
 			std::cout << "Find command: " << command << std::endl;
 			
-			for (auto record : transaction.query<int, std::string, std::string, std::string>(transaction.esc(command))) {
+			for (auto record : transaction.query<int, std::string, std::string, std::string>(command)) {
 				std::cout << "Client ID: " << std::get<0>(record) << "\tClient name: " << std::get<1>(record) << "\tClient surename: " << std::get<2>(record) << "\tClient email:" << std::get<3>(record) << std::endl;
 			}
 				//не понимаю почему у меня get не работает с кортежем record
 		}
 		else {
 			pqxx::work transaction(*con);
-			std::string command = "SELECT id, name, surename, email FROM clients WHERE " + searchtype + " LIKE '" + name + "'";
+			std::string command = "SELECT id, name, surename, email FROM clients WHERE " + transaction.esc(searchtype) + " LIKE '" + transaction.esc(name) + "'";
 			std::cout << "Find command: " << command << std::endl << std::endl;
 			
-			for (auto record : transaction.query<int, std::string, std::string, std::string>(transaction.esc(command))) {
+			for (auto record : transaction.query<int, std::string, std::string, std::string>(command)) {
 				std::cout << "Client ID: " << std::get<0>(record) << "\tClient name : " << std::get<1>(record) << "\tClient surename : " << std::get<2>(record) << "\tClient email : " << std::get<3>(record) << std::endl;
 			}
 		}
